@@ -1,0 +1,1 @@
+Folder/Repo for studying ai and computer vision in particulars
