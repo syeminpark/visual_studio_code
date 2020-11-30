@@ -1,1 +1,1 @@
-Folder/Repo for studying ai and computer vision in particulars
+Foldera and Repo for studying ai and computer vision in particular.
