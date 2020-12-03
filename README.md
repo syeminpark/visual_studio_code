@@ -1,1 +1,1 @@
-Folder and Repo for studying ai and computer vision in particular.Thank you.
+Folder and Repo for studying ai and computer vision in particular.Thank you. Windows Desktop test.
