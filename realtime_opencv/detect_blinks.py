@@ -53,6 +53,12 @@ COUNTER = 0
 TOTAL = -1
 OPEN=False
 
+mode=0
+before_status = 0
+wait =0
+start=1
+finish=2
+
 
 def startPoint():
 	if TOTAL<=-1:
@@ -142,18 +148,41 @@ while True:
 			COUNTER += 1
 			OPEN=False
 
-		elif ear> 0.25:
+		elif ear> 0.22:
 			 OPEN=True
+			 COUNTER =0
+			 before_status = 0
 		# otherwise, the eye aspect ratio is not below the blink
 		# threshold
 
-		else:
-			if COUNTER >= startPoint():
-				if TOTAL<0:
-					TOTAL+=1
-				elif OPEN and COUNTER>startPoint():
-					TOTAL+=1
-					COUNTER=0
+		if mode==0:
+			if COUNTER >= 50:
+				TOTAL+=1
+				mode=1
+
+
+		if mode==1:
+			if COUNTER >= 3 and before_status == 0:
+				TOTAL +=1
+				print("hhggggggghhhgjjhgjhgjhgjhghjghjjhghjggg")
+				before_status = 2
+
+			
+				
+
+		
+
+		print(COUNTER, "and" ,before_status )
+
+
+
+		# else:
+		# 	if COUNTER >= startPoint():
+		# 		if TOTAL<0:
+		# 			TOTAL+=1
+		# 		elif OPEN and COUNTER>startPoint():
+		# 			TOTAL+=1
+		# 			COUNTER=0
 
 
 				
