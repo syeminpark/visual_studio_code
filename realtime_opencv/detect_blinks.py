@@ -15,13 +15,13 @@ import dlib
 import cv2
 import serial
 
-#아두이노 파트
-arduinoData=serial.Serial('/dev/cu.usbserial-14420',9600)
-def led_on():
-    arduinoData.write(b'1')
+# #아두이노 파트
+# arduinoData=serial.Serial('/dev/cu.usbserial-14420',9600)
+# def led_on():
+#     arduinoData.write(b'1')
 
-def led_off():
-    arduinoData.write(b'0')
+# def led_off():
+#     arduinoData.write(b'0')
 
 
 def eye_aspect_ratio(eye):
