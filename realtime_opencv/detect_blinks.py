@@ -4,7 +4,7 @@
 
 # import the necessary packages
 from scipy.spatial import distance as dist
-from imutils.video import FileVideoStream
+# from imutils.video import FileVideoStream
 from imutils.video import VideoStream
 from imutils import face_utils
 import numpy as np
@@ -13,6 +13,7 @@ import imutils
 import time
 import dlib
 import cv2
+
 import serial
 
 # #아두이노 파트
@@ -71,19 +72,19 @@ def startPoint():
 	
 
 # construct the argument parse and parse the arguments
-ap = argparse.ArgumentParser()
-ap.add_argument("-p", "--shape-predictor", required=True,
-	help="path to facial landmark predictor")
-ap.add_argument("-v", "--video", type=str, default="",
-	help="path to input video file")
-args = vars(ap.parse_args())
+# ap = argparse.ArgumentParser()
+# ap.add_argument("-p", "--shape-predictor", required=True,
+# 	help="path to facial landmark predictor")
+# ap.add_argument("-v", "--video", type=str, default="",
+# 	help="path to input video file")
+# args = vars(ap.parse_args())
 
-
+fileDir='/Users/marshmalloww/Desktop/s.dat'
 # initialize dlib's face detector (HOG-based) and then create
 # the facial landmark predictor
 print("[INFO] loading facial landmark predictor...")
 detector = dlib.get_frontal_face_detector()
-predictor = dlib.shape_predictor(args["shape_predictor"])
+predictor = dlib.shape_predictor(fileDir)
 
 # grab the indexes of the facial landmarks for the left and
 # right eye, respectively
@@ -92,7 +93,7 @@ predictor = dlib.shape_predictor(args["shape_predictor"])
 
 # start the video stream thread
 print("[INFO] starting video stream thread...")
-vs = FileVideoStream(args["video"]).start()
+# vs = FileVideoStream(args["video"]).start()
 # fileStream = True
 vs = VideoStream(src=0).start()
 # vs = VideoStream(usePiCamera=True).start()
