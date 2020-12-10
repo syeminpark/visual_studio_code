@@ -1,12 +1,12 @@
 import cv2
 import dlib
-import numpy as npq
+import numpy as np
 from keras.models import load_model
 from scipy.spatial import distance as dist
 from imutils import face_utils
 
-predictor = dlib.shape_predictor('/Users/marshmalloww/Desktop/s.dat')
-face_cascade = cv2.CascadeClassifier('/Users/marshmalloww/Desktop/h.xml')
+predictor = dlib.shape_predictor('CNN_EYE_BLINK/shape_predictor_68_face_landmarks.dat')
+face_cascade = cv2.CascadeClassifier('CNN_EYE_BLINK/haarcascade_frontalface_alt.xml')
 
 # detect the face rectangle 
 def detect(img, cascade = face_cascade , minimumFeatureSize=(20, 20)):
