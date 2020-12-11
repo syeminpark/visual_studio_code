@@ -4,9 +4,23 @@ import numpy as np
 from keras.models import load_model
 from scipy.spatial import distance as dist
 from imutils import face_utils
+import serial
+import time
+
+
 
 predictor = dlib.shape_predictor('CNN_EYE_BLINK/shape_predictor_68_face_landmarks.dat')
 face_cascade = cv2.CascadeClassifier('CNN_EYE_BLINK/haarcascade_frontalface_alt.xml')
+
+
+# #아두이노 파트
+# arduinoData=serial.Serial('/dev/cu.usbserial-14420',9600)
+# def led_on():
+#     arduinoData.write(b'1')
+
+# def led_off():
+#     arduinoData.write(b'0')
+
 
 # detect the face rectangle 
 def detect(img, cascade = face_cascade , minimumFeatureSize=(20, 20)):
@@ -94,6 +108,8 @@ def cropEyes(frame):
 	right_eye_rect = right_eye_rect.astype(int)
 	right_eye_image = gray[right_eye_rect[1]:right_eye_rect[3], right_eye_rect[0]:right_eye_rect[2]]
 
+	
+
 	# if it doesn't detect left or right eye return None
 	if 0 in left_eye_image.shape or 0 in right_eye_image.shape:
 		return None
@@ -102,7 +118,8 @@ def cropEyes(frame):
 	right_eye_image = cv2.resize(right_eye_image, (34, 26))
 	right_eye_image = cv2.flip(right_eye_image, 1)
 	# return left and right eye
-	return left_eye_image, right_eye_image 
+	left_eye_image, right_eye_image
+	return [left_eye_image, right_eye_image,left_eye_rect, right_eye_rect]
 
 # make the image to have the same format as at training 
 def cnnPreprocess(img):
@@ -114,6 +131,9 @@ def cnnPreprocess(img):
 
 def main():
 	# open the camera,load the cnn model 
+
+	EYES=0
+
 	print("loading camera")
 	camera = cv2.VideoCapture(0)
 	model = load_model('/Users/marshmalloww/Documents/visual_studio_code/CNN_EYE_BLINK/blinkModel.hdf5')
@@ -130,25 +150,28 @@ def main():
 		# detect eyes
 		eyes = cropEyes(frame)
 		if eyes is None:
-			continue
+			EYES='gone'
 		else:
-			left_eye,right_eye = eyes
+			left_eye,right_eye,left_rect,right_rect = eyes
+			EYES='here'
 		
 		# average the predictions of the two eyes 
 		prediction = (model.predict(cnnPreprocess(left_eye)) + model.predict(cnnPreprocess(right_eye)))/2.0
 			
 		# blinks
 		# if the eyes are open reset the counter for close eyes
-		if prediction > 0.5 :
+		if prediction > 0.5:
 			state = 'open'
 			close_counter = 0
-		else:
+
+		elif prediction<0.5 and EYES=='here':
 			state = 'close'
 			close_counter += 1
 		
 		# if the eyes are open and previousle were closed
 		# for sufficient number of frames then increcement 
 		# the total blinks
+
 		if state == 'open' and mem_counter > 1:
 			blinks += 1
 		# keep the counter for the next loop 
@@ -156,9 +179,15 @@ def main():
 
 		# draw the total number of blinks on the frame along with
 		# the state for the frame
+		
+		cv2.rectangle(frame, pt1=tuple(left_rect[0:2]), pt2=tuple(left_rect[2:4]), color=(255,255,255), thickness=2)
+		cv2.rectangle(frame, pt1=tuple(right_rect[0:2]), pt2=tuple(right_rect[2:4]), color=(255,255,255), thickness=2)
+
 		cv2.putText(frame, "Blinks: {}".format(blinks), (10, 30),
 			cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
 		cv2.putText(frame, "State: {}".format(state), (300, 30),
+			cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+		cv2.putText(frame, "Eye Size: {}".format(prediction), (600, 30),
 			cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
 		
 		# show the frame
