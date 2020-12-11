@@ -1,7 +1,7 @@
 import serial
 import time
 
-arduinoData=serial.Serial('/dev/cu.usbserial-14420',9600)
+arduinoData=serial.Serial(port='COM4',baudrate=9600)
 
 def led_on():
     arduinoData.write(b'1')
