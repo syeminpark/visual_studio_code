@@ -1,10 +1,10 @@
-# USAGE
+	# USAGE
 # python detect_blinks.py --shape-predictor shape_predictor_68_face_landmarks.dat --video blink_detection_demo.mp4
 # python detect_blinks.py --shape-predictor shape_predictor_68_face_landmarks.dat
 
 # import the necessary packages
 from scipy.spatial import distance as dist
-# from imutils.video import FileVideoStream
+from imutils.video import FileVideoStream
 from imutils.video import VideoStream
 from imutils import face_utils
 import numpy as np
@@ -13,16 +13,29 @@ import imutils
 import time
 import dlib
 import cv2
-
 import serial
 
-# #아두이노 파트
-# arduinoData=serial.Serial('/dev/cu.usbserial-14420',9600)
-# def led_on():
-#     arduinoData.write(b'1')
+#아두이노 파트
+# arduinoData=serial.Serial(port='COM7',baudrate=9600,timeout=1)
+# time.sleep(1)
 
-# def led_off():
-#     arduinoData.write(b'0')
+
+
+# while True:
+# 	if arduinoData.readable():
+# 		data = arduinoData.readline()[:-2] #the last bit gets rid of the new-line chars
+# 		print (data)
+
+
+def led_on():
+	# arduinoData.write(b'1')
+	time.sleep(1./120)
+
+
+
+def led_off():
+	# arduinoData.write(b'0')
+	time.sleep(1./120)
 
 
 def eye_aspect_ratio(eye):
@@ -41,45 +54,25 @@ def eye_aspect_ratio(eye):
 	# return the eye aspect ratio
 	return ear
 
- 
+
 # define two constants, one for the eye aspect ratio to indicate
 # blink and then a second constant for the number of consecutive
 # frames the eye must be below the threshold
-EYE_AR_THRESH = 0.22
-EYE_AR_CONSEC_FRAMES = 1
+EYE_AR_THRESH = 0.2
+EYE_AR_CONSEC_FRAMES = 3
 
 
 # initialize the frame counters and the total number of blinks
 COUNTER = 0
-TOTAL = -1
-OPEN=False
+TOTAL = 0
 
 mode=0
 before_status = 0
-wait =0
-start=1
-finish=2
+after_status=0
+fileDir='C:/Users/marshmallow/Desktop/shape_predictor_68_face_landmarks.dat'
+start=False
 
 
-def startPoint():
-	if TOTAL<=-1:
-		EYE_AR_CONSEC_FRAMES=40
-	else:
-		EYE_AR_CONSEC_FRAMES=1
-
-	return EYE_AR_CONSEC_FRAMES
-	
-	
-
-# construct the argument parse and parse the arguments
-# ap = argparse.ArgumentParser()
-# ap.add_argument("-p", "--shape-predictor", required=True,
-# 	help="path to facial landmark predictor")
-# ap.add_argument("-v", "--video", type=str, default="",
-# 	help="path to input video file")
-# args = vars(ap.parse_args())
-
-fileDir='/Users/marshmalloww/Desktop/s.dat'
 # initialize dlib's face detector (HOG-based) and then create
 # the facial landmark predictor
 print("[INFO] loading facial landmark predictor...")
@@ -147,57 +140,65 @@ while True:
 
 		if ear < EYE_AR_THRESH:
 			COUNTER += 1
-			OPEN=False
-
-		elif ear> 0.22:
-			 OPEN=True
-			 COUNTER =0
-			 before_status = 0
+			if  TOTAL==2 and start==False:
+				
+				led_off()
+				
+ 
+		elif ear> 0.25 :		
+			 COUNTER =0 
+			 if mode==1:
+				 before_status = 0
+			 if TOTAL==1 and start==True:
+				 led_on()
+				 start=False
+				 print(led_on())
+				
 		# otherwise, the eye aspect ratio is not below the blink
 		# threshold
 
 		if mode==0:
 			if COUNTER >= 50:
-				TOTAL+=1
+				TOTAL=0
 				mode=1
-
-
+				
 		if mode==1:
 			if COUNTER >= 3 and before_status == 0:
 				TOTAL +=1
-				print("hhggggggghhhgjjhgjhgjhgjhghjghjjhghjggg")
+				
 				before_status = 2
 
-			
-				
 
+		if TOTAL==1 and after_status==0 and ear> 0.25:
+			# led_on()
+			start=True
+	
+			after_status=1
+		
+		
+		if TOTAL==2 and after_status==1:
+			# led_off()
+		
+			
+			# cv2.putText(frame, "BLINKED!", (200, 100),
+			# cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+			after_status=0
 		
 
-		print(COUNTER, "and" ,before_status )
-
-
-
-		# else:
-		# 	if COUNTER >= startPoint():
-		# 		if TOTAL<0:
-		# 			TOTAL+=1
-		# 		elif OPEN and COUNTER>startPoint():
-		# 			TOTAL+=1
-		# 			COUNTER=0
-
-
-				
+		if TOTAL==3:
+			TOTAL=0
+			COUNTER=0
+			mode=0
 			
-# def startPoint():
-# 	if TOTAL==-1:
-# 		EYE_AR_CONSEC_FRAMES=10
-# 	else:
-# 		EYE_AR_CONSEC_FRAMES=1
-
-# 	return EYE_AR_CONSEC_FRAMES
-				
-
+			
+		
 	
+	
+
+
+
+		# print(COUNTER, "and" ,mode, send)
+
 		# draw the total number of blinks on the frame along with
 		# the computed eye aspect ratio for the frame
 		cv2.putText(frame, "Blinks: {}".format(TOTAL), (10, 30),

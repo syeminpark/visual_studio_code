@@ -4,6 +4,7 @@ import numpy as np
 from keras.models import load_model
 from scipy.spatial import distance as dist
 from imutils import face_utils
+from imutils.video import VideoStream
 
 predictor = dlib.shape_predictor('CNN_EYE_BLINK/shape_predictor_68_face_landmarks.dat')
 face_cascade = cv2.CascadeClassifier('CNN_EYE_BLINK/haarcascade_frontalface_alt.xml')
@@ -30,6 +31,7 @@ def cropEyes(frame):
 	
 	# detect the face at grayscale image
 	te = detect(gray, minimumFeatureSize=(80, 80))
+	face=0
 
 	# if the face detector doesn't detect face
 	# return None, else if detects more than one faces
@@ -115,8 +117,9 @@ def cnnPreprocess(img):
 def main():
 	# open the camera,load the cnn model 
 	print("loading camera")
-	camera = cv2.VideoCapture(0)
-	model = load_model('/Users/marshmalloww/Documents/visual_studio_code/CNN_EYE_BLINK/blinkModel.hdf5')
+	# camera = cv2.VideoCapture(0)
+	camera = VideoStream(src=0).start()
+	model = load_model('CNN_EYE_BLINK\\blinkModel.hdf5')
 	
 	# blinks is the number of total blinks ,close_counter
 	# the counter for consecutive close predictions
@@ -125,7 +128,7 @@ def main():
 	state = ''
 	while True:
 		
-		ret, frame = camera.read()
+		frame = camera.read()
 		
 		# detect eyes
 		eyes = cropEyes(frame)
@@ -136,7 +139,7 @@ def main():
 		
 		# average the predictions of the two eyes 
 		prediction = (model.predict(cnnPreprocess(left_eye)) + model.predict(cnnPreprocess(right_eye)))/2.0
-			
+		print (prediction)
 		# blinks
 		# if the eyes are open reset the counter for close eyes
 		if prediction > 0.5 :
