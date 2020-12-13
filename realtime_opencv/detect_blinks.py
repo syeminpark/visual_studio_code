@@ -15,9 +15,9 @@ import dlib
 import cv2
 import serial
 
-#아두이노 파트
-# arduinoData=serial.Serial(port='COM7',baudrate=9600,timeout=1)
-# time.sleep(1)
+# 아두이노 파트
+arduinoData=serial.Serial(port='/dev/cu.usbserial-14410',baudrate=9600,timeout=1)
+time.sleep(1)
 
 
 
@@ -28,13 +28,13 @@ import serial
 
 
 def led_on():
-	# arduinoData.write(b'1')
+	arduinoData.write(b'1')
 	time.sleep(1./120)
 
 
 
 def led_off():
-	# arduinoData.write(b'0')
+	arduinoData.write(b'0')
 	time.sleep(1./120)
 
 
@@ -58,18 +58,18 @@ def eye_aspect_ratio(eye):
 # define two constants, one for the eye aspect ratio to indicate
 # blink and then a second constant for the number of consecutive
 # frames the eye must be below the threshold
-EYE_AR_THRESH = 0.2
+EYE_AR_THRESH = 0.25
 EYE_AR_CONSEC_FRAMES = 3
 
 
 # initialize the frame counters and the total number of blinks
 COUNTER = 0
-TOTAL = 0
+TOTAL = -1
 
 mode=0
 before_status = 0
 after_status=0
-fileDir='C:/Users/marshmallow/Desktop/shape_predictor_68_face_landmarks.dat'
+fileDir='CNN_EYE_BLINK/shape_predictor_68_face_landmarks.dat'
 start=False
 
 
@@ -88,7 +88,7 @@ predictor = dlib.shape_predictor(fileDir)
 print("[INFO] starting video stream thread...")
 # vs = FileVideoStream(args["video"]).start()
 # fileStream = True
-vs = VideoStream(src=0).start()
+vs = VideoStream(src=1).start()
 # vs = VideoStream(usePiCamera=True).start()
 fileStream = False
 time.sleep(1.0)
@@ -140,64 +140,49 @@ while True:
 
 		if ear < EYE_AR_THRESH:
 			COUNTER += 1
-			if  TOTAL==2 and start==False:
-				
+			if  TOTAL==2:
 				led_off()
+		
 				
  
-		elif ear> 0.25 :		
+		elif ear> 0.27 :		
 			 COUNTER =0 
-			 if mode==1:
-				 before_status = 0
-			 if TOTAL==1 and start==True:
+			 before_status=0
+			 if TOTAL==1 and ear>0.27:
 				 led_on()
-				 start=False
-				 print(led_on())
+		
+				 
 				
 		# otherwise, the eye aspect ratio is not below the blink
 		# threshold
 
 		if mode==0:
 			if COUNTER >= 50:
-				TOTAL=0
+				TOTAL+=1
 				mode=1
 				
 		if mode==1:
-			if COUNTER >= 3 and before_status == 0:
-				TOTAL +=1
-				
-				before_status = 2
+			if TOTAL==0 and ear>0.27:
+				TOTAL+=1
 
+			if TOTAL==1 and COUNTER >= 3 and before_status==0:
+				TOTAL+=1
+				before_status=1
 
-		if TOTAL==1 and after_status==0 and ear> 0.25:
-			# led_on()
-			start=True
-	
-			after_status=1
-		
-		
-		if TOTAL==2 and after_status==1:
-			# led_off()
-		
-			
-			# cv2.putText(frame, "BLINKED!", (200, 100),
-			# cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
-			after_status=0
-		
+			if TOTAL==2 and COUNTER >= 3 and before_status==0:
+				TOTAL+=1
+				before_status=1
 
 		if TOTAL==3:
-			TOTAL=0
+			TOTAL=-1
 			COUNTER=0
 			mode=0
 			
 			
 		
 	
-	
 
-
-
-		# print(COUNTER, "and" ,mode, send)
+		print(COUNTER, "and" ,mode)
 
 		# draw the total number of blinks on the frame along with
 		# the computed eye aspect ratio for the frame
